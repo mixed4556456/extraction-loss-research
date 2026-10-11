@@ -1,0 +1,3 @@
+﻿player_id,match_id,block,carry_value,lost_value,loss_rate,frustration,willingness,died,death_cause,frust_source,note
+# 玩家编号,# 情境序号,# 区块 A/B/C/D,# 携带总价值,# 损失总价值,# 损失率(0~1),# 挫败感 1~10 ★必填,# 继续意愿 1~10,# 是否死亡,# 死因(player/ai/extract/survive/na),# 挫败来源(C-2: death/loss/both/other),# 备注
+P01(示例),9,A,50000,35000,0.7000,7,4,1,na,loss,这把卡没了三级甲

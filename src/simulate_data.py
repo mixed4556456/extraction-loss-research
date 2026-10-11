@@ -24,7 +24,7 @@ import pandas as pd
 RNG = np.random.default_rng(42)
 N_PLAYERS = 500
 THRESHOLD = 0.70  # 上帝视角的真实拐点：总损失率 70%
-OUT = Path(__file__).resolve().parent / "data" / "matches.csv"
+OUT = Path(__file__).resolve().parent.parent / "data" / "matches.csv"   # 脚本在 src/ 下，数据写到项目根 data/
 
 
 def make_players() -> pd.DataFrame:

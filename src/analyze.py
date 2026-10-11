@@ -2,9 +2,9 @@
 """
 搜打撤研究 —— 第 2 步：分析流水线
 分箱曲线 -> LOESS 平滑 -> 分段回归找拐点 -> 贫富分层 -> 混合效应模型 -> 结论报告
-用法: python analyze.py [csv路径]   （默认 data/matches.csv）
+用法: python src/analyze.py [csv路径]   （默认 data/matches.csv；脚本在 src/ 下，产物写到项目根）
 """
-import sys
+import json, sys
 from pathlib import Path
 
 import numpy as np
@@ -20,7 +20,7 @@ plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]  # 中文显示
 plt.rcParams["axes.unicode_minus"] = False
 
 RNG = np.random.default_rng(7)
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent   # 项目根（脚本在 src/ 下，data/ figs/ 位于根目录）
 FIG = ROOT / "figs"
 FIG.mkdir(exist_ok=True)
 
@@ -155,17 +155,42 @@ def mixed_model(df: pd.DataFrame):
         return None
 
 
+def load_curve_meta() -> dict:
+    """读取 src/fit_improved.py 产出的主口径阈值（最大加速点）；文件缺失时返回空 dict，不阻断流程。"""
+    p = ROOT / "data" / "curve_data.json"
+    if not p.exists():
+        return {}
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def report(df, st, c_hat, lo, hi, beta, res) -> None:
     lines = [
         "# 搜打撤损失 → 负反馈 分析报告（模拟数据演示）", "",
         f"- 样本：{df['player_id'].nunique()} 名玩家，{len(df)} 局",
-        f"- 真实拐点（上帝视角）= **70%**，分析恢复的拐点 = **{c_hat:.0%}**（95%CI {lo:.0%}~{hi:.0%}）",
+        f"- 真实阈值（上帝视角）= **70%**（总损失率二次项起点）；分段线性（仅 loss_rate，方法对照）恢复 = **{c_hat:.0%}**（95%CI {lo:.0%}~{hi:.0%}）",
         f"- 分段拟合：低段斜率 = {beta[1]:.2f}，拐点后额外斜率 = {beta[2]:.2f}",
         "- 混合效应模型（控制玩家个体随机效应）：",
     ]
     if res is not None:
         for name in ["loss_rate", "died", "died_to_player"]:
             lines.append(f"    - {name}: β = {res.params[name]:.2f}（p = {res.pvalues[name]:.3g}）")
+    cd = load_curve_meta()
+    if cd:
+        mm, exm = cd.get("meta", {}), cd.get("extended", {}).get("meta", {})
+        lines += [
+            "",
+            "## 主口径：最大加速点（来自 src/fit_improved.py，与网页 index.html 同源）",
+            f"- 总损失率（主口径）三次函数最大加速点 = **{mm.get('cubic_threshold_pct', '--')}%**"
+            f"（95%CI {mm.get('cubic_threshold_ci_low_pct', '--')}%~{mm.get('cubic_threshold_ci_high_pct', '--')}%）",
+            f"- 总损失率（主口径）B样条最大加速度点 = {mm.get('threshold_pct', '--')}%（参考线）",
+            f"- 损失率（副口径）三次函数最大加速点 = {exm.get('cubic_threshold_pct', '--')}%"
+            f"（95%CI {exm.get('cubic_threshold_ci_low_pct', '--')}%~{exm.get('cubic_threshold_ci_high_pct', '--')}%）",
+            f"- 损失率（副口径）B样条 = {exm.get('threshold_pct', '--')}%（参考线）",
+            "- 说明：「最大加速点」是拟合曲线二阶导峰值处（加速度最强），通常晚于生成公式里二次项起点（真实阈值 70%）；"
+            "口径取舍与三次/B样条的方法差异见 docs/methodology.md",
+        ]
+
     lines += ["", "## 分箱均值表", "", "| 损失率区间中点 | 挫败感均值 | 95%CI | n |", "|---|---|---|---|"]
     for r in st.itertuples():
         lines.append(f"| {r.bin_mid:.2f} | {r.mean:.2f} | ±{r.ci:.2f} | {r.n} |")

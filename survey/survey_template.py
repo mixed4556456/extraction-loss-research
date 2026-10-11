@@ -6,8 +6,8 @@
   1. 打印/导出 survey_template.csv, 手动填写玩家数据
   2. 运行 python validate_survey.py survey.csv
   3. 将验证通过的 csv 放入 data/ 目录
-  4. python fit_improved.py data/你的调查数据.csv  (生成新曲线)
-  5. python analyze.py data/你的调查数据.csv         (完整报表)
+  4. python src/fit_improved.py data/你的调查数据.csv  (生成新曲线)
+  5. python src/analyze.py data/你的调查数据.csv         (完整报表)
 """
 
 SURVEY_COLUMNS = [
@@ -36,9 +36,12 @@ SURVEY_COLUMNS = [
 ]
 
 
-def generate_template(path="survey_template.csv"):
-    """生成空白调查问卷 CSV 模板。"""
+def generate_template(path=None):
+    """生成空白调查问卷 CSV 模板（默认写在脚本同目录 survey/）。"""
     import csv, os
+    from pathlib import Path
+    if path is None:
+        path = Path(__file__).resolve().parent / "survey_template.csv"
     headers = [c[0] for c in SURVEY_COLUMNS]
     comments = [c[2] for c in SURVEY_COLUMNS]
     rows = []

@@ -25,6 +25,8 @@ extraction_loss_research/
 ├── assets/plotly.min.js        # 离线 Plotly（4.35MB），网页优先加载它
 ├── summary_report.md           # analyze.py 生成的分析报告
 ├── questionnaire_design.md     # 问卷设计说明书
+├── PRD.md                      # 后续开发的产品需求（现状缺口 G-xx、需求 R-xx、验收标准）
+├── agent.md                    # AI/自动化开发指南（硬规则、产物归属、命令、陷阱、交接待办）
 └── .github/workflows/pages.yml # GitHub Pages 自动部署
 ```
 

@@ -3,9 +3,12 @@
 搜打撤研究 —— 调查问卷模板 + 批量录入脚本
 ============================================
 使用方法:
-  1. 打印/导出 survey_template.csv, 手动填写玩家数据
-  2. 运行 python validate_survey.py survey.csv
-  3. 将验证通过的 csv 放入 data/ 目录
+  1. 打印/导出 survey_template.csv, 手动填写玩家数据（填写前先删掉第 2 行 "#" 注释行）
+  2. 自查（本仓库没有独立校验脚本, 用下面这条；期望 13 列、0 缺失值）:
+     python -c "import pandas as pd; d=pd.read_csv('survey/你的问卷.csv'); print(d.shape, int(d.isna().sum().sum()), d[['frustration','willingness']].describe().loc[['min','max']].to_dict())"
+     检查要点: frustration/willingness 在 1~10、died 为 0/1、carry_value > 0
+     注意: 注释行不删的话, 全列会被 pandas 读成字符串（实测 shape 会变成 2 行）
+  3. 把清洗好的 csv 放到 data/ 下（或按下面命令用行参数指定路径）
   4. python src/fit_improved.py data/你的调查数据.csv  (生成新曲线)
   5. python src/analyze.py data/你的调查数据.csv         (完整报表)
 """
